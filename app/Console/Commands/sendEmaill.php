@@ -5,9 +5,10 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
 use App\Traits\ConnectionRedis;
+use App\Mail\SendEmail;
 
 
-class sendEmail extends Command
+class sendEmaill extends Command
 {
     use ConnectionRedis;
 
@@ -44,12 +45,11 @@ class sendEmail extends Command
     {
         $redis = $this->getRedis();
         $emails = $redis->zRange('emails', '0', '-1');
-        for ($i = 0; $i < sizeof($emails); $i++) {
-            Mail::to($emails[$i])->send(new \App\Mail\SendEmail());
-            $redis->zAdd('email:success','25',$emails[$i]);
-            $redis->zRem('emails',$emails[$i]);
+        foreach ($emails as $email){
+            Mail::to($email)->send(new SendEmail());
+            $redis->zAdd('email:success','25',$email);
+            $redis->zRem('emails',$email);
         }
-
         $redis->close();
     }
 }
